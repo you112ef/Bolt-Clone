@@ -14,14 +14,14 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY!;
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODEL = 'llama3-70b-8192'; // or 'mixtral-8x7b-32768'
 
-async function callGroq(messages: any[]) {
+async function callGroq(messages: any[], max_tokens: number) {
   const res = await axios.post(
     GROQ_URL,
     {
       model: MODEL,
       messages,
       temperature: 0.7,
-      max_tokens: 8000,
+      max_tokens: max_tokens,
     },
     {
       headers: {
@@ -48,13 +48,13 @@ app.post('/template', async (req, res) => {
     },
   ];
 
-  const answer = (await callGroq(messages)).trim().toLowerCase();
+  const answer = (await callGroq(messages, 200)).trim().toLowerCase();
 
   if (answer === 'react') {
     res.json({
       prompts: [
         BASE_PROMPT,
-        `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+        `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n `,
       ],
       uiPrompts: [reactBasePrompt],
     });
@@ -82,13 +82,12 @@ app.post('/chat', async (req, res) => {
     ...userMessages,
   ];
 
-  const output = await callGroq(messages);
-
+  const output = await callGroq(messages, 8000);
+  console.log('Output:', output);
   res.json({
     response: output,
   });
 });
-
 app.listen(3000, () => {
   console.log('Groq server running on http://localhost:3000');
 });
