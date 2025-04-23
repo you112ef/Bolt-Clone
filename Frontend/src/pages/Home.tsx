@@ -35,9 +35,7 @@ export function Home() {
     if (prompt.trim()) {
       navigate('/builder', {
         state: {
-          prompt:
-            'create in single donot follow the modular thing and use raw css not tailwind and  dark themed' +
-            prompt,
+          prompt: prompt,
         },
       });
     }

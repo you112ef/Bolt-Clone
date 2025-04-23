@@ -1,7 +1,7 @@
 require('dotenv').config();
 import express from 'express';
 import cors from 'cors';
-import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BASE_PROMPT, getSystemPrompt } from './prompts';
 import { basePrompt as nodeBasePrompt } from './defaults/node';
 import { basePrompt as reactBasePrompt } from './defaults/react';
@@ -10,45 +10,40 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY!;
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama3-70b-8192'; // or 'mixtral-8x7b-32768'
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const MODEL = 'gemini-2.5-flash-preview-04-17';
 
-async function callGroq(messages: any[], max_tokens: number) {
-  const res = await axios.post(
-    GROQ_URL,
-    {
-      model: MODEL,
-      messages,
-      temperature: 0.7,
-      max_tokens: max_tokens,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  return res.data.choices[0].message.content;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+async function callGemini(messages: any[], maxTokens: number) {
+  const model = genAI.getGenerativeModel({ model: MODEL });
+
+  const chat = model.startChat({
+    history: messages.slice(0, -1).map((msg) => ({
+      role: msg.role,
+      parts: [{ text: msg.content }],
+    })),
+  });
+
+  const userMessage = messages[messages.length - 1].content;
+  const result = await chat.sendMessage(userMessage);
+  const response = await result.response;
+  return response.text();
 }
 
+// Detect if project is node or react
 app.post('/template', async (req, res) => {
   const prompt = req.body.prompt;
 
   const messages = [
     {
-      role: 'system',
-      content:
-        "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra",
-    },
-    {
       role: 'user',
-      content: prompt,
+      content:
+        "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra\n\n" + prompt,
     },
   ];
 
-  const answer = (await callGroq(messages, 200)).trim().toLowerCase();
+  const answer = (await callGemini(messages, 200)).trim().toLowerCase();
 
   if (answer === 'react') {
     res.json({
@@ -71,23 +66,24 @@ app.post('/template', async (req, res) => {
   }
 });
 
+// Chat endpoint
 app.post('/chat', async (req, res) => {
   const userMessages = req.body.messages;
 
   const messages = [
     {
-      role: 'system',
-      content: getSystemPrompt(),
+      role: 'user',
+      content: `${getSystemPrompt()}\n\n` + userMessages.map((m: any) => m.content).join('\n'),
     },
-    ...userMessages,
   ];
 
-  const output = await callGroq(messages, 8000);
+  const output = await callGemini(messages, 8000);
   console.log('Output:', output);
   res.json({
     response: output,
   });
 });
+
 app.listen(3000, () => {
-  console.log('Groq server running on http://localhost:3000');
+  console.log('Gemini server running on http://localhost:3000');
 });
