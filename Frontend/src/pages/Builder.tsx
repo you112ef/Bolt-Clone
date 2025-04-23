@@ -11,7 +11,14 @@ import { BACKEND_URL } from '../config.ts';
 import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { Loader } from '../components/Loader.tsx';
-import { Home, PanelRight, Send, Wand2, RefreshCw, AlertTriangle } from 'lucide-react';
+import {
+  Home,
+  PanelRight,
+  Send,
+  RefreshCw,
+  AlertTriangle,
+  BoltIcon,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WebContainer } from '@webcontainer/api';
 
@@ -24,7 +31,11 @@ export function Builder() {
   >([]);
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
-  const { webcontainer, error: webContainerError, loading: webContainerLoading } = useWebContainer();
+  const {
+    webcontainer,
+    error: webContainerError,
+    loading: webContainerLoading,
+  } = useWebContainer();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
@@ -218,18 +229,21 @@ export function Builder() {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <button 
-            onClick={() => window.location.href = '/'} 
+          <button
+            onClick={() => (window.location.href = '/')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <Wand2 className="w-6 h-6 text-blue-400" />
+            <BoltIcon className="w-6 h-6 text-blue-400" />
             <h1 className="text-xl font-semibold text-white">Bolt</h1>
           </button>
           <div className="h-6 mx-4 border-r border-gray-700"></div>
           <h2 className="text-gray-300">Website Builder</h2>
         </div>
         <div className="flex items-center gap-4">
-          <a href="/" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+          <a
+            href="/"
+            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+          >
             <Home className="w-5 h-5" />
             <span>Home</span>
           </a>
@@ -238,7 +252,7 @@ export function Builder() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <motion.div 
+        <motion.div
           className="bg-gray-900 border-r border-gray-800 overflow-hidden"
           animate={{ width: isSidebarCollapsed ? '3rem' : '25rem' }}
           transition={{ duration: 0.3 }}
@@ -246,22 +260,28 @@ export function Builder() {
           <div className="flex h-full">
             {/* Collapse button */}
             <div className="p-2 bg-gray-900 border-r border-gray-800 flex flex-col items-center">
-              <button 
+              <button
                 onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
                 className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={
+                  isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
+                }
               >
-                <PanelRight className={`w-5 h-5 text-gray-400 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
+                <PanelRight
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    isSidebarCollapsed ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
             </div>
-            
+
             {!isSidebarCollapsed && (
               <div className="flex-1 overflow-hidden flex flex-col">
                 <div className="border-b border-gray-800 p-4">
                   <h3 className="text-white font-medium mb-1">Your Prompt</h3>
                   <p className="text-sm text-gray-400 line-clamp-2">{prompt}</p>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto p-4">
                   <h3 className="text-white font-medium mb-4">Build Steps</h3>
                   <div className="max-h-full overflow-y-auto">
@@ -272,13 +292,15 @@ export function Builder() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="border-t border-gray-800 p-4">
-                  {(loading || !templateSet) ? (
+                  {loading || !templateSet ? (
                     <Loader />
                   ) : (
                     <div className="space-y-3">
-                      <h3 className="text-white font-medium">Add Instructions</h3>
+                      <h3 className="text-white font-medium">
+                        Add Instructions
+                      </h3>
                       <div className="relative">
                         <textarea
                           value={userPrompt}
@@ -320,7 +342,7 @@ export function Builder() {
                                 })
                               ),
                             ]);
-                            
+
                             setPrompt('');
                           }}
                           disabled={userPrompt.trim().length === 0}
@@ -352,20 +374,26 @@ export function Builder() {
           <div className="p-4 border-b border-gray-800 bg-gray-900">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-          
+
           <div className="flex-1 overflow-hidden p-4 bg-gray-950">
             <div className="h-full rounded-lg overflow-hidden border border-gray-800 bg-gray-900 shadow-xl">
               {activeTab === 'code' ? (
                 <CodeEditor file={selectedFile} />
               ) : webcontainer ? (
-                <PreviewFrame webContainer={webcontainer as WebContainer} files={files} />
+                <PreviewFrame
+                  webContainer={webcontainer as WebContainer}
+                  files={files}
+                />
               ) : webContainerLoading ? (
                 <div className="h-full flex items-center justify-center text-gray-400 p-8 text-center">
                   <div>
                     <Loader size="lg" className="mb-4" />
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">Initializing WebContainer</h3>
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                      Initializing WebContainer
+                    </h3>
                     <p className="text-gray-500 max-w-md">
-                      Setting up the preview environment. This might take a moment...
+                      Setting up the preview environment. This might take a
+                      moment...
                     </p>
                   </div>
                 </div>
@@ -375,12 +403,14 @@ export function Builder() {
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
                       <AlertTriangle className="w-8 h-8 text-amber-500" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">WebContainer Error</h3>
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                      WebContainer Error
+                    </h3>
                     <p className="text-gray-400 max-w-md mb-6">
-                      {webContainerError?.message || 
-                       "The WebContainer environment could not be initialized. This may be due to missing browser security headers or lack of browser support."}
+                      {webContainerError?.message ||
+                        'The WebContainer environment could not be initialized. This may be due to missing browser security headers or lack of browser support.'}
                     </p>
-                    <button 
+                    <button
                       onClick={handleRefreshWebContainer}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
                     >
