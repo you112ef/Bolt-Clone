@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FolderTree, File, ChevronRight, ChevronDown } from 'lucide-react';
+import { FolderTree, File, ChevronRight, ChevronDown, FileCode, FileJson, FileText } from 'lucide-react';
 import { FileItem } from '../types';
+import { cn } from '../utils/cn';
 
 interface FileExplorerProps {
   files: FileItem[];
@@ -13,8 +14,31 @@ interface FileNodeProps {
   onFileClick: (file: FileItem) => void;
 }
 
+function getFileIcon(fileName: string) {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  
+  switch (extension) {
+    case 'js':
+    case 'jsx':
+    case 'ts':
+    case 'tsx':
+      return <FileCode className="w-4 h-4 text-yellow-500" />;
+    case 'json':
+      return <FileJson className="w-4 h-4 text-green-500" />;
+    case 'md':
+      return <FileText className="w-4 h-4 text-blue-400" />;
+    case 'html':
+      return <FileCode className="w-4 h-4 text-orange-500" />;
+    case 'css':
+    case 'scss':
+      return <FileCode className="w-4 h-4 text-purple-500" />;
+    default:
+      return <File className="w-4 h-4 text-gray-400" />;
+  }
+}
+
 function FileNode({ item, depth, onFileClick }: FileNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(item.type === 'folder');
 
   const handleClick = () => {
     if (item.type === 'folder') {
@@ -27,36 +51,49 @@ function FileNode({ item, depth, onFileClick }: FileNodeProps) {
   return (
     <div className="select-none">
       <div
-        className="flex items-center gap-2 p-2 hover:bg-gray-800 rounded-md cursor-pointer"
-        style={{ paddingLeft: `${depth * 1.5}rem` }}
+        className={cn(
+          "flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer transition-colors text-sm",
+          item.type === 'file' ? "hover:bg-gray-800/70" : "hover:bg-gray-800/40",
+        )}
+        style={{ paddingLeft: `${depth * 0.75 + 0.5}rem` }}
         onClick={handleClick}
       >
         {item.type === 'folder' && (
-          <span className="text-gray-400">
+          <span className="text-gray-500">
             {isExpanded ? (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-3.5 h-3.5" />
             ) : (
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             )}
           </span>
         )}
         {item.type === 'folder' ? (
           <FolderTree className="w-4 h-4 text-blue-400" />
         ) : (
-          <File className="w-4 h-4 text-gray-400" />
+          getFileIcon(item.name)
         )}
-        <span className="text-gray-200">{item.name}</span>
+        <span className={cn("truncate", item.type === 'folder' ? "text-gray-300 font-medium" : "text-gray-400")}>
+          {item.name}
+        </span>
       </div>
       {item.type === 'folder' && isExpanded && item.children && (
-        <div>
-          {item.children.map((child, index) => (
-            <FileNode
-              key={`${child.path}-${index}`}
-              item={child}
-              depth={depth + 1}
-              onFileClick={onFileClick}
-            />
-          ))}
+        <div className="animate-fadeIn">
+          {item.children
+            .sort((a, b) => {
+              // Folders first, then files
+              if (a.type === 'folder' && b.type === 'file') return -1;
+              if (a.type === 'file' && b.type === 'folder') return 1;
+              // Alphabetical order
+              return a.name.localeCompare(b.name);
+            })
+            .map((child, index) => (
+              <FileNode
+                key={`${child.path}-${index}`}
+                item={child}
+                depth={depth + 1}
+                onFileClick={onFileClick}
+              />
+            ))}
         </div>
       )}
     </div>
@@ -64,14 +101,18 @@ function FileNode({ item, depth, onFileClick }: FileNodeProps) {
 }
 
 export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
+  const sortedFiles = [...files].sort((a, b) => {
+    // Folders first, then files
+    if (a.type === 'folder' && b.type === 'file') return -1;
+    if (a.type === 'file' && b.type === 'folder') return 1;
+    // Alphabetical order
+    return a.name.localeCompare(b.name);
+  });
+
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 h-full overflow-auto">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-100">
-        <FolderTree className="w-5 h-5" />
-        File Explorer
-      </h2>
-      <div className="space-y-1">
-        {files.map((file, index) => (
+    <div className="h-full overflow-auto py-2">
+      <div className="space-y-0.5">
+        {sortedFiles.map((file, index) => (
           <FileNode
             key={`${file.path}-${index}`}
             item={file}
@@ -79,6 +120,11 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
             onFileClick={onFileSelect}
           />
         ))}
+        {sortedFiles.length === 0 && (
+          <div className="p-4 text-center text-gray-500 text-sm">
+            No files available
+          </div>
+        )}
       </div>
     </div>
   );

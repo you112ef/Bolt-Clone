@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Home } from './pages/Home';
+import { Home } from './pages/NewHome';
 import { Builder } from './pages/Builder';
+import './index.css';
 
 function App() {
   return (

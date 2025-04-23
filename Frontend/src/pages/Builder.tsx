@@ -11,6 +11,9 @@ import { BACKEND_URL } from '../config.ts';
 import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { Loader } from '../components/Loader.tsx';
+import { Home, PanelRight, Send, Wand2, RefreshCw, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { WebContainer } from '@webcontainer/api';
 
 export function Builder() {
   const location = useLocation();
@@ -21,11 +24,12 @@ export function Builder() {
   >([]);
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
-  const webcontainer = useWebContainer();
+  const { webcontainer, error: webContainerError, loading: webContainerLoading } = useWebContainer();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [steps, setSteps] = useState<Step[]>([]);
 
@@ -103,6 +107,8 @@ export function Builder() {
   }, [steps, files]);
 
   useEffect(() => {
+    if (!webcontainer || files.length === 0) return;
+
     const createMountStructure = (files: FileItem[]): Record<string, any> => {
       const mountStructure: Record<string, any> = {};
 
@@ -145,11 +151,13 @@ export function Builder() {
       return mountStructure;
     };
 
-    const mountStructure = createMountStructure(files);
-
-    // Mount the structure if WebContainer is available
-    console.log(mountStructure);
-    webcontainer?.mount(mountStructure);
+    try {
+      const mountStructure = createMountStructure(files);
+      console.log('Mounting file structure:', mountStructure);
+      (webcontainer as WebContainer).mount(mountStructure);
+    } catch (err) {
+      console.error('Error mounting files to WebContainer:', err);
+    }
   }, [files, webcontainer]);
 
   async function init() {
@@ -202,94 +210,185 @@ export function Builder() {
     init();
   }, []);
 
+  const handleRefreshWebContainer = () => {
+    window.location.reload();
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
-        <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
+    <div className="min-h-screen bg-gray-950 flex flex-col">
+      <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <button 
+            onClick={() => window.location.href = '/'} 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <Wand2 className="w-6 h-6 text-blue-400" />
+            <h1 className="text-xl font-semibold text-white">Bolt</h1>
+          </button>
+          <div className="h-6 mx-4 border-r border-gray-700"></div>
+          <h2 className="text-gray-300">Website Builder</h2>
+        </div>
+        <div className="flex items-center gap-4">
+          <a href="/" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+            <Home className="w-5 h-5" />
+            <span>Home</span>
+          </a>
+        </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full grid grid-cols-4 gap-6 p-6">
-          <div className="col-span-1 space-y-6 overflow-auto">
-            <div>
-              <div className="max-h-[75vh] overflow-scroll">
-                <StepsList
-                  steps={steps}
-                  currentStep={currentStep}
-                  onStepClick={setCurrentStep}
-                />
-              </div>
-              <div>
-                <div className="flex">
-                  <br />
-                  {(loading || !templateSet) && <Loader />}
-                  {!(loading || !templateSet) && (
-                    <div className="flex">
-                      <textarea
-                        value={userPrompt}
-                        onChange={(e) => {
-                          setPrompt(e.target.value);
-                        }}
-                        className="p-2 w-full"
-                      ></textarea>
-                      <button
-                        onClick={async () => {
-                          const newMessage = {
-                            role: 'user' as 'user',
-                            content: userPrompt,
-                          };
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <motion.div 
+          className="bg-gray-900 border-r border-gray-800 overflow-hidden"
+          animate={{ width: isSidebarCollapsed ? '3rem' : '25rem' }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex h-full">
+            {/* Collapse button */}
+            <div className="p-2 bg-gray-900 border-r border-gray-800 flex flex-col items-center">
+              <button 
+                onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+                className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                <PanelRight className={`w-5 h-5 text-gray-400 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            
+            {!isSidebarCollapsed && (
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="border-b border-gray-800 p-4">
+                  <h3 className="text-white font-medium mb-1">Your Prompt</h3>
+                  <p className="text-sm text-gray-400 line-clamp-2">{prompt}</p>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4">
+                  <h3 className="text-white font-medium mb-4">Build Steps</h3>
+                  <div className="max-h-full overflow-y-auto">
+                    <StepsList
+                      steps={steps}
+                      currentStep={currentStep}
+                      onStepClick={setCurrentStep}
+                    />
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-800 p-4">
+                  {(loading || !templateSet) ? (
+                    <Loader />
+                  ) : (
+                    <div className="space-y-3">
+                      <h3 className="text-white font-medium">Add Instructions</h3>
+                      <div className="relative">
+                        <textarea
+                          value={userPrompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                          placeholder="Add more instructions or modifications..."
+                          className="w-full p-3 bg-gray-800 text-gray-200 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-gray-500 text-sm h-20"
+                        ></textarea>
+                        <button
+                          onClick={async () => {
+                            const newMessage = {
+                              role: 'user' as 'user',
+                              content: userPrompt,
+                            };
 
-                          setLoading(true);
-                          const stepsResponse = await axios.post(
-                            `${BACKEND_URL}/chat`,
-                            {
-                              messages: [...llmMessages, newMessage],
-                            }
-                          );
-                          setLoading(false);
+                            setLoading(true);
+                            const stepsResponse = await axios.post(
+                              `${BACKEND_URL}/chat`,
+                              {
+                                messages: [...llmMessages, newMessage],
+                              }
+                            );
+                            setLoading(false);
 
-                          setLlmMessages((x) => [...x, newMessage]);
-                          setLlmMessages((x) => [
-                            ...x,
-                            {
-                              role: 'assistant',
-                              content: stepsResponse.data.response,
-                            },
-                          ]);
+                            setLlmMessages((x) => [...x, newMessage]);
+                            setLlmMessages((x) => [
+                              ...x,
+                              {
+                                role: 'assistant',
+                                content: stepsResponse.data.response,
+                              },
+                            ]);
 
-                          setSteps((s) => [
-                            ...s,
-                            ...parseXml(stepsResponse.data.response).map(
-                              (x) => ({
-                                ...x,
-                                status: 'pending' as 'pending',
-                              })
-                            ),
-                          ]);
-                        }}
-                        className="bg-purple-400 px-4"
-                      >
-                        Send
-                      </button>
+                            setSteps((s) => [
+                              ...s,
+                              ...parseXml(stepsResponse.data.response).map(
+                                (x) => ({
+                                  ...x,
+                                  status: 'pending' as 'pending',
+                                })
+                              ),
+                            ]);
+                            
+                            setPrompt('');
+                          }}
+                          disabled={userPrompt.trim().length === 0}
+                          className="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-full transition-colors"
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
-          <div className="col-span-1">
+        </motion.div>
+
+        {/* File explorer */}
+        <div className="w-64 border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-gray-800">
+            <h3 className="text-white font-medium">Files</h3>
+          </div>
+          <div className="flex-1 overflow-auto">
             <FileExplorer files={files} onFileSelect={setSelectedFile} />
           </div>
-          <div className="col-span-2 bg-gray-900 rounded-lg shadow-lg p-4 h-[calc(100vh-8rem)]">
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-gray-800 bg-gray-900">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="h-[calc(100%-4rem)]">
+          </div>
+          
+          <div className="flex-1 overflow-hidden p-4 bg-gray-950">
+            <div className="h-full rounded-lg overflow-hidden border border-gray-800 bg-gray-900 shadow-xl">
               {activeTab === 'code' ? (
                 <CodeEditor file={selectedFile} />
               ) : webcontainer ? (
-                <PreviewFrame webContainer={webcontainer} files={files} />
+                <PreviewFrame webContainer={webcontainer as WebContainer} files={files} />
+              ) : webContainerLoading ? (
+                <div className="h-full flex items-center justify-center text-gray-400 p-8 text-center">
+                  <div>
+                    <Loader size="lg" className="mb-4" />
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">Initializing WebContainer</h3>
+                    <p className="text-gray-500 max-w-md">
+                      Setting up the preview environment. This might take a moment...
+                    </p>
+                  </div>
+                </div>
               ) : (
-                <div className="text-gray-400">Preview is not available</div>
+                <div className="h-full flex items-center justify-center text-gray-400 p-8 text-center">
+                  <div>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+                      <AlertTriangle className="w-8 h-8 text-amber-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">WebContainer Error</h3>
+                    <p className="text-gray-400 max-w-md mb-6">
+                      {webContainerError?.message || 
+                       "The WebContainer environment could not be initialized. This may be due to missing browser security headers or lack of browser support."}
+                    </p>
+                    <button 
+                      onClick={handleRefreshWebContainer}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Retry
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
