@@ -8,7 +8,7 @@ import { Analytics } from '@vercel/analytics/react';
 function App() {
   return (
     <BrowserRouter>
-        <Analytics />
+       <Analytics />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/builder" element={<Builder />} />
