@@ -1,9 +1,11 @@
 import Editor from '@monaco-editor/react';
 import { FileItem } from '../types';
 import { FileCode } from 'lucide-react';
+import { useState } from 'react';
 
 interface CodeEditorProps {
   file: FileItem | null;
+  onUpdateFile?: (updatedFile: FileItem) => void;
 }
 
 // Determine language from file extension
@@ -34,7 +36,22 @@ function getLanguage(filename: string) {
   }
 }
 
-export function CodeEditor({ file }: CodeEditorProps) {
+export function CodeEditor({ file, onUpdateFile }: CodeEditorProps) {
+  const [editorContent, setEditorContent] = useState<string>(file?.content || '');
+
+  const handleEditorChange = (value: string | undefined) => {
+    if (!file || !value) return;
+    
+    setEditorContent(value);
+    
+    if (onUpdateFile) {
+      onUpdateFile({
+        ...file,
+        content: value
+      });
+    }
+  };
+
   if (!file) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
@@ -59,9 +76,10 @@ export function CodeEditor({ file }: CodeEditorProps) {
           height="100%"
           defaultLanguage={getLanguage(file.name)}
           theme="vs-dark"
-          value={file.content || ''}
+          value={editorContent}
+          onChange={handleEditorChange}
           options={{
-            readOnly: true,
+            readOnly: false,
             minimap: { enabled: true },
             fontSize: 14,
             wordWrap: 'on',

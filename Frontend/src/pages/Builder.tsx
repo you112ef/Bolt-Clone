@@ -41,10 +41,43 @@ export function Builder() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isFileExplorerCollapsed, setFileExplorerCollapsed] = useState(false);
 
   const [steps, setSteps] = useState<Step[]>([]);
 
   const [files, setFiles] = useState<FileItem[]>([]);
+
+  const handleFileUpdate = (updatedFile: FileItem) => {
+    // Deep clone files to maintain immutability
+    const updateFilesRecursively = (filesArray: FileItem[], fileToUpdate: FileItem): FileItem[] => {
+      return filesArray.map(file => {
+        if (file.path === fileToUpdate.path) {
+          return fileToUpdate;
+        } else if (file.type === 'folder' && file.children) {
+          return {
+            ...file,
+            children: updateFilesRecursively(file.children, fileToUpdate)
+          };
+        }
+        return file;
+      });
+    };
+
+    const updatedFiles = updateFilesRecursively(files, updatedFile);
+    setFiles(updatedFiles);
+
+    // Update file in WebContainer if it's initialized
+    if (webcontainer) {
+      try {
+        (webcontainer as WebContainer).fs.writeFile(
+          updatedFile.path.startsWith('/') ? updatedFile.path.substring(1) : updatedFile.path, 
+          updatedFile.content || ''
+        );
+      } catch (err) {
+        console.error('Error writing file to WebContainer:', err);
+      }
+    }
+  };
 
   useEffect(() => {
     let originalFiles = [...files];
@@ -237,7 +270,7 @@ export function Builder() {
             <h1 className="text-xl font-semibold text-white">Bolt</h1>
           </button>
           <div className="h-6 mx-4 border-r border-gray-700"></div>
-          <h2 className="text-gray-300">Website Builder</h2>
+          <h2 className="text-gray-300 hidden sm:block">Website Builder</h2>
         </div>
         <div className="flex items-center gap-4">
           <a
@@ -245,7 +278,7 @@ export function Builder() {
             className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
           >
             <Home className="w-5 h-5" />
-            <span>Home</span>
+            <span className="hidden sm:inline">Home</span>
           </a>
         </div>
       </header>
@@ -254,7 +287,8 @@ export function Builder() {
         {/* Sidebar */}
         <motion.div
           className="bg-gray-900 border-r border-gray-800 overflow-hidden"
-          animate={{ width: isSidebarCollapsed ? '3rem' : '25rem' }}
+          animate={{ width: isSidebarCollapsed ? '3rem' : ['100%', '90%', '75%', '50%', '33%', '25rem'].length > window.innerWidth / 100 ? '0' : '25rem' }}
+          initial={false}
           transition={{ duration: 0.3 }}
         >
           <div className="flex h-full">
@@ -360,25 +394,57 @@ export function Builder() {
         </motion.div>
 
         {/* File explorer */}
-        <div className="w-64 border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-800">
+        <motion.div 
+          className="border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col"
+          animate={{ 
+            width: isFileExplorerCollapsed ? '0' : '16rem',
+            opacity: isFileExplorerCollapsed ? 0 : 1
+          }} 
+          transition={{ duration: 0.3 }}
+        >
+          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
             <h3 className="text-white font-medium">Files</h3>
+            <button
+              onClick={() => setFileExplorerCollapsed(!isFileExplorerCollapsed)}
+              className="p-1 rounded-lg hover:bg-gray-800 transition-colors md:hidden"
+            >
+              <PanelRight className="w-4 h-4 text-gray-400" />
+            </button>
           </div>
           <div className="flex-1 overflow-auto">
             <FileExplorer files={files} onFileSelect={setSelectedFile} />
           </div>
-        </div>
+        </motion.div>
 
         {/* Main content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-gray-800 bg-gray-900">
+          <div className="p-4 border-b border-gray-800 bg-gray-900 flex items-center justify-between">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
+            <div className="flex items-center md:hidden">
+              <button
+                onClick={() => setFileExplorerCollapsed(!isFileExplorerCollapsed)}
+                className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                title={isFileExplorerCollapsed ? "Show files" : "Hide files"}
+              >
+                <PanelRight className={`w-4 h-4 text-gray-400 ${isFileExplorerCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+              <button
+                onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+                className="ml-2 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                title={isSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              >
+                <PanelRight className={`w-4 h-4 text-gray-400 ${!isSidebarCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-hidden p-4 bg-gray-950">
             <div className="h-full rounded-lg overflow-hidden border border-gray-800 bg-gray-900 shadow-xl">
               {activeTab === 'code' ? (
-                <CodeEditor file={selectedFile} />
+                <CodeEditor 
+                  file={selectedFile} 
+                  onUpdateFile={handleFileUpdate}
+                />
               ) : webcontainer ? (
                 <PreviewFrame
                   webContainer={webcontainer as WebContainer}

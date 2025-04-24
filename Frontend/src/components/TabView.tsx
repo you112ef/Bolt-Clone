@@ -12,26 +12,26 @@ export function TabView({ activeTab, onTabChange }: TabViewProps) {
       <button
         onClick={() => onTabChange('code')}
         className={cn(
-          "flex items-center gap-2 px-5 py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+          "flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/40",
           activeTab === 'code'
             ? 'bg-gray-800 text-white'
             : 'text-gray-400 hover:text-gray-300'
         )}
       >
         <Code2 className="w-4 h-4" />
-        <span>Code</span>
+        <span className="hidden xs:inline">Code</span>
       </button>
       <button
         onClick={() => onTabChange('preview')}
         className={cn(
-          "flex items-center gap-2 px-5 py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+          "flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/40",
           activeTab === 'preview'
             ? 'bg-gray-800 text-white'
             : 'text-gray-400 hover:text-gray-300'
         )}
       >
         <Eye className="w-4 h-4" />
-        <span>Preview</span>
+        <span className="hidden xs:inline">Preview</span>
       </button>
     </div>
   );
