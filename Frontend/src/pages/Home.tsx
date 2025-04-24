@@ -15,10 +15,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Disclosure } from '@headlessui/react';
+import { useAppContext } from '../context/AppContext';
 import { cn } from '../utils/cn';
+import { MainLayout } from '../layouts/MainLayout';
 
 export function Home() {
-  const [prompt, setPrompt] = useState('');
+  const { prompt, setPrompt } = useAppContext();
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
 
@@ -33,11 +35,7 @@ export function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (prompt.trim()) {
-      navigate('/builder', {
-        state: {
-          prompt: prompt,
-        },
-      });
+      navigate('/builder');
     }
   };
 

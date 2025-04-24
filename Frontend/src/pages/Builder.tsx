@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { StepsList } from '../components/StepsList.tsx';
 import { FileExplorer } from '../components/FileExplorer';
 import { TabView } from '../components/TabView.tsx';
@@ -7,7 +7,7 @@ import { CodeEditor } from '../components/CodeEditor.tsx';
 import { PreviewFrame } from '../components/PreviewFrame';
 import { Step, FileItem, StepType } from '../types/index.ts';
 import axios from 'axios';
-import { BACKEND_URL } from '../config.ts';
+import { API_URL } from '../config.ts';
 import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { Loader } from '../components/Loader.tsx';
@@ -23,10 +23,16 @@ import {
 import { motion } from 'framer-motion';
 import { WebContainer } from '@webcontainer/api';
 import { downloadProjectAsZip } from '../utils/fileDownloader';
+import { useAppContext } from '../context/AppContext';
+import { MainLayout } from '../layouts/MainLayout';
+import { getProjectTemplate, sendChatMessage } from '../services/api';
+
+// Defining the step status type explicitly
+type StepStatus = 'pending' | 'in-progress' | 'completed';
 
 export function Builder() {
-  const location = useLocation();
-  const { prompt } = location.state as { prompt: string };
+  const navigate = useNavigate();
+  const { prompt, setLoading: setContextLoading, currentStep, setCurrentStep } = useAppContext();
   const [userPrompt, setPrompt] = useState('');
   const [llmMessages, setLlmMessages] = useState<
     { role: 'user' | 'assistant'; content: string }[]
@@ -40,54 +46,22 @@ export function Builder() {
     loading: webContainerLoading,
   } = useWebContainer();
 
-  const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isFileExplorerCollapsed, setFileExplorerCollapsed] = useState(false);
 
   const [steps, setSteps] = useState<Step[]>([]);
-
   const [files, setFiles] = useState<FileItem[]>([]);
 
-  const handleFileUpdate = (updatedFile: FileItem) => {
-    // Deep clone files to maintain immutability
-    const updateFilesRecursively = (filesArray: FileItem[], fileToUpdate: FileItem): FileItem[] => {
-      return filesArray.map(file => {
-        if (file.path === fileToUpdate.path) {
-          return fileToUpdate;
-        } else if (file.type === 'folder' && file.children) {
-          return {
-            ...file,
-            children: updateFilesRecursively(file.children, fileToUpdate)
-          };
-        }
-        return file;
-      });
-    };
-
-    const updatedFiles = updateFilesRecursively(files, updatedFile);
-    setFiles(updatedFiles);
-
-    // Update file in WebContainer if it's initialized
-    if (webcontainer) {
-      try {
-        (webcontainer as WebContainer).fs.writeFile(
-          updatedFile.path.startsWith('/') ? updatedFile.path.substring(1) : updatedFile.path, 
-          updatedFile.content || ''
-        );
-      } catch (err) {
-        console.error('Error writing file to WebContainer:', err);
-      }
-    }
-  };
-
+  // Process steps to generate files
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
+    
     steps
       .filter(({ status }) => status === 'pending')
-      .map((step) => {
+      .forEach((step) => {
         updateHappened = true;
         if (step?.type === StepType.CreateFile) {
           let parsedPath = step.path?.split('/') ?? []; // ["src", "components", "App.tsx"]
@@ -145,132 +119,221 @@ export function Builder() {
         steps.map((s: Step) => {
           return {
             ...s,
-            status: 'completed',
+            status: 'completed' as StepStatus,
           };
         })
       );
     }
-    // console.log(files);
-  }, [steps, files]);
+  }, [steps]);
 
+  // Update WebContainer when files change
   useEffect(() => {
     if (!webcontainer || files.length === 0) return;
 
-    const createMountStructure = (files: FileItem[]): Record<string, any> => {
-      const mountStructure: Record<string, any> = {};
-
-      const processFile = (file: FileItem, isRootFolder: boolean) => {
-        if (file.type === 'folder') {
-          // For folders, create a directory entry
-          mountStructure[file.name] = {
-            directory: file.children
-              ? Object.fromEntries(
-                  file.children.map((child) => [
-                    child.name,
-                    processFile(child, false),
-                  ])
-                )
-              : {},
-          };
-        } else if (file.type === 'file') {
-          if (isRootFolder) {
-            mountStructure[file.name] = {
-              file: {
-                contents: file.content || '',
-              },
-            };
-          } else {
-            // For files, create a file entry with contents
-            return {
-              file: {
-                contents: file.content || '',
-              },
-            };
-          }
-        }
-
-        return mountStructure[file.name];
-      };
-
-      // Process each top-level file/folder
-      files.forEach((file) => processFile(file, true));
-
-      return mountStructure;
-    };
-
     try {
-      const mountStructure = createMountStructure(files);
-      // console.log('Mounting file structure:', mountStructure);
-      (webcontainer as WebContainer).mount(mountStructure);
+      (webcontainer as WebContainer).mount(createMountStructure(files));
     } catch (err) {
       console.error('Error mounting files to WebContainer:', err);
     }
   }, [files, webcontainer]);
 
+  const handleFileUpdate = (updatedFile: FileItem) => {
+    // Deep clone files to maintain immutability
+    const updateFilesRecursively = (filesArray: FileItem[], fileToUpdate: FileItem): FileItem[] => {
+      return filesArray.map(file => {
+        if (file.path === fileToUpdate.path) {
+          return fileToUpdate;
+        } else if (file.type === 'folder' && file.children) {
+          return {
+            ...file,
+            children: updateFilesRecursively(file.children, fileToUpdate)
+          };
+        }
+        return file;
+      });
+    };
+
+    const updatedFiles = updateFilesRecursively(files, updatedFile);
+    setFiles(updatedFiles);
+
+    // Update file in WebContainer if it's initialized
+    if (webcontainer) {
+      try {
+        (webcontainer as WebContainer).fs.writeFile(
+          updatedFile.path.startsWith('/') ? updatedFile.path.substring(1) : updatedFile.path, 
+          updatedFile.content || ''
+        );
+      } catch (err) {
+        console.error('Error writing file to WebContainer:', err);
+      }
+    }
+  };
+
+  // Create mount structure for WebContainer
+  const createMountStructure = (files: FileItem[]): Record<string, any> => {
+    const mountStructure: Record<string, any> = {};
+
+    const processFile = (file: FileItem, isRootFolder: boolean) => {
+      if (file.type === 'folder') {
+        // For folders, create a directory entry
+        mountStructure[file.name] = {
+          directory: file.children
+            ? Object.fromEntries(
+                file.children.map((child) => [
+                  child.name,
+                  processFile(child, false),
+                ])
+              )
+            : {},
+        };
+      } else if (file.type === 'file') {
+        if (isRootFolder) {
+          mountStructure[file.name] = {
+            file: {
+              contents: file.content || '',
+            },
+          };
+        } else {
+          // For files, create a file entry with contents
+          return {
+            file: {
+              contents: file.content || '',
+            },
+          };
+        }
+      }
+
+      return mountStructure[file.name];
+    };
+
+    // Process each top-level file/folder
+    files.forEach((file) => processFile(file, true));
+
+    return mountStructure;
+  };
+
   async function init() {
-    const response = await axios.post(`${BACKEND_URL}/template`, {
-      prompt: prompt.trim(),
-    });
-    setTemplateSet(true);
+    try {
+      setLoading(true);
 
-    const { prompts, uiPrompts } = response.data;
+      // Skip if template is already set
+      if (!templateSet) {
+        // Get template from backend
+        const response = await axios.post(`${API_URL}/template`, {
+          prompt,
+        });
 
-    setSteps(
-      parseXml(uiPrompts[0]).map((x: Step) => ({
-        ...x,
-        status: 'pending',
-      }))
-    );
+        const { prompts, uiPrompts } = response.data;
 
-    setLoading(true);
-    const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
-      messages: [...prompts, prompt].map((content) => ({
-        role: 'user',
-        content,
-      })),
-    });
+        setLlmMessages([
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ]);
 
-    setLoading(false);
+        // Set the initial steps from template
+        const initialSteps = parseXml(uiPrompts[0] || '').map((x: any) => ({
+          ...x,
+          status: 'pending' as StepStatus,
+        }));
+        
+        setSteps(initialSteps);
+        setTemplateSet(true);
 
-    setSteps((s) => [
-      ...s,
-      ...parseXml(stepsResponse.data.response).map((x) => ({
-        ...x,
-        status: 'pending' as 'pending',
-      })),
-    ]);
+        // Send the chat request for full project generation
+        const chatResponse = await axios.post(`${API_URL}/chat`, {
+          messages: [...prompts, prompt].map((content: string) => ({
+            role: 'user',
+            content,
+          })),
+        });
 
-    setLlmMessages(
-      [...prompts, prompt].map((content) => ({
-        role: 'user',
-        content,
-      }))
-    );
+        // Process the steps from the chat response
+        const newSteps = parseXml(chatResponse.data.response).map((x: any) => ({
+          ...x,
+          status: 'pending' as StepStatus,
+        }));
+        
+        setSteps(prevSteps => [...prevSteps, ...newSteps]);
+        
+        setLlmMessages(prevMessages => [
+          ...prevMessages,
+          { role: 'assistant', content: chatResponse.data.response }
+        ]);
+      }
 
-    setLlmMessages((x) => [
-      ...x,
-      { role: 'assistant', content: stepsResponse.data.response },
-    ]);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error initializing project:', error);
+      setLoading(false);
+    }
   }
-
-  useEffect(() => {
-    init();
-  }, []);
-
+  
   const handleRefreshWebContainer = () => {
-    window.location.reload();
+    if (webcontainer) {
+      init();
+    }
   };
 
   const handleDownloadProject = async () => {
-    try {
+    if (files.length > 0) {
       setIsDownloading(true);
-      await downloadProjectAsZip(files, 'bolt-project');
-    } catch (error) {
-      console.error('Failed to download project:', error);
-    } finally {
-      setIsDownloading(false);
+      try {
+        await downloadProjectAsZip(files);
+      } catch (error) {
+        console.error('Failed to download project:', error);
+      } finally {
+        setIsDownloading(false);
+      }
     }
   };
+
+  const handleSendMessage = async () => {
+    if (!userPrompt.trim()) return;
+  
+    const newUserMessage = {
+      role: 'user' as const,
+      content: userPrompt,
+    };
+  
+    setLlmMessages([...llmMessages, newUserMessage]);
+    setPrompt('');
+    setLoading(true);
+  
+    try {
+      const response = await axios.post(`${API_URL}/chat`, {
+        messages: [...llmMessages, newUserMessage],
+      });
+  
+      const assistantMessage = {
+        role: 'assistant' as const,
+        content: response.data.response,
+      };
+  
+      setLlmMessages([...llmMessages, newUserMessage, assistantMessage]);
+  
+      // Check if the response contains steps in XML format
+      const newSteps = parseXml(response.data.response).map((x: any) => ({
+        ...x,
+        status: 'pending' as StepStatus,
+      }));
+      
+      if (newSteps.length > 0) {
+        setSteps((prevSteps) => [...prevSteps, ...newSteps]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (webcontainer && !templateSet) {
+      init();
+    }
+  }, [webcontainer, templateSet]);
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -375,42 +438,7 @@ export function Builder() {
                           className="w-full p-3 bg-gray-800 text-gray-200 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-gray-500 text-sm h-20"
                         ></textarea>
                         <button
-                          onClick={async () => {
-                            const newMessage = {
-                              role: 'user' as 'user',
-                              content: userPrompt,
-                            };
-
-                            setLoading(true);
-                            const stepsResponse = await axios.post(
-                              `${BACKEND_URL}/chat`,
-                              {
-                                messages: [...llmMessages, newMessage],
-                              }
-                            );
-                            setLoading(false);
-
-                            setLlmMessages((x) => [...x, newMessage]);
-                            setLlmMessages((x) => [
-                              ...x,
-                              {
-                                role: 'assistant',
-                                content: stepsResponse.data.response,
-                              },
-                            ]);
-
-                            setSteps((s) => [
-                              ...s,
-                              ...parseXml(stepsResponse.data.response).map(
-                                (x) => ({
-                                  ...x,
-                                  status: 'pending' as 'pending',
-                                })
-                              ),
-                            ]);
-
-                            setPrompt('');
-                          }}
+                          onClick={handleSendMessage}
                           disabled={userPrompt.trim().length === 0}
                           className="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-full transition-colors"
                         >

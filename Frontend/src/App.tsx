@@ -1,19 +1,22 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { Home } from './pages/Home';
 import { Builder } from './pages/Builder';
+import { AppProvider } from './context/AppContext';
 import './index.css';
-import { Analytics } from '@vercel/analytics/react';
-
 
 function App() {
   return (
-    <BrowserRouter>
-       <Analytics />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/builder" element={<Builder />} />
-      </Routes>
-    </BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
+        <Analytics />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/builder" element={<Builder />} />
+        </Routes>
+      </BrowserRouter>
+    </AppProvider>
   );
 }
+
 export default App;
