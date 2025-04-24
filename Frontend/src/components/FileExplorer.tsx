@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FolderTree, File, ChevronRight, ChevronDown, FileCode, FileJson, FileText } from 'lucide-react';
 import { FileItem } from '../types';
 import { cn } from '../utils/cn';

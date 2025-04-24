@@ -28,7 +28,7 @@ export function Home() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [scrollY]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
