@@ -39,8 +39,6 @@ Frontend/
 │   ├── context/          # React context for state management
 │   │   └── AppContext.tsx # Application context provider
 │   ├── hooks/            # Custom React hooks
-│   ├── layouts/          # Page layout components
-│   │   └── MainLayout.tsx # Main application layout
 │   ├── pages/            # Application pages
 │   │   ├── Home.tsx      # Landing page
 │   │   └── Builder.tsx   # Website builder page
@@ -50,7 +48,6 @@ Frontend/
 │   │   └── main.css      # Main CSS file
 │   ├── types/            # TypeScript type definitions
 │   ├── utils/            # Utility functions
-│   ├── assets/           # Static assets
 │   ├── config.ts         # Application configuration
 │   ├── steps.ts          # Step parsing logic
 │   ├── main.tsx          # Main application entry point

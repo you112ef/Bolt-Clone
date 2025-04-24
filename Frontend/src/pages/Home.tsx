@@ -47,33 +47,42 @@ export function Home() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between p-6 lg:px-12 max-w-7xl mx-auto">
-        <div className="flex items-center space-x-2">
-          <div className="relative w-10 h-10 flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg"></div>
-            <BoltIcon className="w-6 h-6 text-white relative z-10" />
-          </div>
-          <span className="text-2xl font-bold text-white">Bolt</span>
+      <nav 
+        className={cn(
+          "fixed z-20 flex items-center justify-between p-6 transition-all duration-300 w-full",
+          scrollY > 50 
+        ? "backdrop-blur-lg bg-gray-950/70 shadow-lg shadow-black/10" 
+        : "bg-transparent"
+        )}
+      >
+        <div className="w-full flex items-center justify-between px-6 lg:px-12 left-0 right-0">
+          <div className="flex items-center space-x-2">
+        <div className="relative w-10 h-10 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg"></div>
+          <BoltIcon className="w-6 h-6 text-white relative z-10" />
         </div>
-        <div className="flex items-center space-x-6">
-          <a
-            href="#features"
-            className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-          >
-            Features
-          </a>
-          <a
-            href="#why-choose"
-            className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-          >
-            Why Choose
-          </a>
-          <a
-            href="#faq"
-            className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-          >
-            FAQ
-          </a>
+        <span className="text-2xl font-bold text-white">Bolt</span>
+          </div>
+          <div className="flex items-center space-x-6">
+        <a
+          href="#features"
+          className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+        >
+          Features
+        </a>
+        <a
+          href="#why-choose"
+          className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+        >
+          Why Choose
+        </a>
+        <a
+          href="#faq"
+          className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+        >
+          FAQ
+        </a>
+          </div>
         </div>
       </nav>
 
