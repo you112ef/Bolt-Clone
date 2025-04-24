@@ -1,7 +1,7 @@
 import Editor from '@monaco-editor/react';
 import { FileItem } from '../types';
 import { FileCode } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CodeEditorProps {
   file: FileItem | null;
@@ -38,6 +38,13 @@ function getLanguage(filename: string) {
 
 export function CodeEditor({ file, onUpdateFile }: CodeEditorProps) {
   const [editorContent, setEditorContent] = useState<string>(file?.content || '');
+
+  // Update editor content when file changes
+  useEffect(() => {
+    if (file) {
+      setEditorContent(file.content || '');
+    }
+  }, [file]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (!file || !value) return;

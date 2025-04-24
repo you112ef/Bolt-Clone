@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL = 'gemini-2.5-flash-preview-04-17';
+const MODEL = 'gemini-2.0-flash';
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
