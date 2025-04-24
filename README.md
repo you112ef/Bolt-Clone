@@ -92,7 +92,7 @@ GEMINI_API_KEY=your_api_key_here
 
 ```bash
 cd Backend
-npm run dev
+npm run start
 ```
 
 #### Frontend
