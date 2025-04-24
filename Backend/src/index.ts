@@ -7,11 +7,7 @@ import { basePrompt as nodeBasePrompt } from './defaults/node';
 import { basePrompt as reactBasePrompt } from './defaults/react';
 
 const app = express();
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['X-Requested-With', 'Content-Type', 'Accept']
-}));
+app.use(cors());
 app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
@@ -88,21 +84,6 @@ app.post('/chat', async (req, res) => {
   });
 });
 
-// Handle preflight requests
-app.options('*', cors());
-
-// Handle root path for health checks
-app.get('/', (req, res) => {
-  res.status(200).send('Bolt Backend API is running');
+app.listen(3000, () => {
+  console.log('Gemini server running on http://localhost:3000');
 });
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Gemini server running on http://localhost:${PORT}`);
-  });
-}
-
-// Export for Vercel serverless function
-export default app;
