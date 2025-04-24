@@ -24,8 +24,6 @@ import { motion } from 'framer-motion';
 import { WebContainer } from '@webcontainer/api';
 import { downloadProjectAsZip } from '../utils/fileDownloader';
 import { useAppContext } from '../context/AppContext';
-import { MainLayout } from '../layouts/MainLayout';
-import { getProjectTemplate, sendChatMessage } from '../services/api';
 
 // Defining the step status type explicitly
 type StepStatus = 'pending' | 'in-progress' | 'completed';
