@@ -78,7 +78,7 @@ app.post('/chat', async (req, res) => {
   ];
 
   const output = await callGemini(messages, 8000);
-  console.log('Output:', output);
+  // console.log('Output:', output);
   res.json({
     response: output,
   });

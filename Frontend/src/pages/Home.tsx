@@ -357,7 +357,7 @@ export function Home() {
               >
                 <Disclosure>
                   {({ open }) => (
-                    <>
+                    <div>
                       <Disclosure.Button className="flex justify-between w-full px-6 py-4 text-left text-white bg-gray-900/50 backdrop-blur-sm hover:bg-gray-900/80 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         <span className="text-lg font-medium">
                           {faq.question}
@@ -372,7 +372,7 @@ export function Home() {
                       <Disclosure.Panel className="px-6 py-4 bg-gray-900/30 backdrop-blur-sm text-gray-300">
                         {faq.answer}
                       </Disclosure.Panel>
-                    </>
+                    </div>
                   )}
                 </Disclosure>
               </motion.div>

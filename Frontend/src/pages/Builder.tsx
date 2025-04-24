@@ -147,7 +147,7 @@ export function Builder() {
         })
       );
     }
-    console.log(files);
+    // console.log(files);
   }, [steps, files]);
 
   useEffect(() => {
@@ -197,7 +197,7 @@ export function Builder() {
 
     try {
       const mountStructure = createMountStructure(files);
-      console.log('Mounting file structure:', mountStructure);
+      // console.log('Mounting file structure:', mountStructure);
       (webcontainer as WebContainer).mount(mountStructure);
     } catch (err) {
       console.error('Error mounting files to WebContainer:', err);

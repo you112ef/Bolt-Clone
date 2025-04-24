@@ -96,7 +96,23 @@ export function CodeEditor({ file, onUpdateFile }: CodeEditorProps) {
             renderWhitespace: 'selection',
             smoothScrolling: true,
             cursorBlinking: 'smooth',
-            cursorSmoothCaretAnimation: 'on'
+            cursorSmoothCaretAnimation: 'on',
+            quickSuggestions: false,
+            parameterHints: { enabled: false }
+          }}
+          onMount={(editor, monaco) => {
+            // Disable validation for TypeScript/JavaScript
+            if (monaco.languages.typescript) {
+              monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: true
+              });
+              
+              monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: true
+              });
+            }
           }}
         />
       </div>
