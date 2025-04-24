@@ -18,9 +18,11 @@ import {
   RefreshCw,
   AlertTriangle,
   BoltIcon,
+  Download,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WebContainer } from '@webcontainer/api';
+import { downloadProjectAsZip } from '../utils/fileDownloader';
 
 export function Builder() {
   const location = useLocation();
@@ -31,6 +33,7 @@ export function Builder() {
   >([]);
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const {
     webcontainer,
     error: webContainerError,
@@ -258,6 +261,17 @@ export function Builder() {
     window.location.reload();
   };
 
+  const handleDownloadProject = async () => {
+    try {
+      setIsDownloading(true);
+      await downloadProjectAsZip(files, 'bolt-project');
+    } catch (error) {
+      console.error('Failed to download project:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
@@ -273,6 +287,24 @@ export function Builder() {
           <h2 className="text-gray-300 hidden sm:block">Website Builder</h2>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            onClick={handleDownloadProject}
+            disabled={isDownloading || files.length === 0}
+            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors mr-4 bg-gray-800 px-3 py-1.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download project as ZIP"
+          >
+            {isDownloading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                <span className="hidden sm:inline">Downloading...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Download ZIP</span>
+              </>
+            )}
+          </button>
           <a
             href="/"
             className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
