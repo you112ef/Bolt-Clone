@@ -17,7 +17,6 @@ import { motion } from 'framer-motion';
 import { Disclosure } from '@headlessui/react';
 import { useAppContext } from '../context/AppContext';
 import { cn } from '../utils/cn';
-import { MainLayout } from '../layouts/MainLayout';
 
 export function Home() {
   const { prompt, setPrompt } = useAppContext();
