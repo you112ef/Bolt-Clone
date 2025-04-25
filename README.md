@@ -1,5 +1,6 @@
 # ⚡ Bolt - Transform Ideas into Websites
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/4bf19b29-3563-4a17-a788-d857c92138c4)
+
 
 
 ![Stars](https://img.shields.io/github/stars/PankajKumardev/Bolt-Clone?style=social)
