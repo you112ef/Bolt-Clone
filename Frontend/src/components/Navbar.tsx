@@ -14,13 +14,13 @@ export function Navbar({ scrollY }: NavbarProps) {
       animate={{ filter: 'blur(0px)' }}
       transition={{ duration: 0.3 }}
       className={cn(
-        'fixed z-20 flex items-center justify-between p-6 transition-all duration-300 w-full',
+        'fixed z-20 flex items-center justify-between py-6 md:p-6 transition-all duration-300 w-full',
         scrollY > 50
           ? 'backdrop-blur-lg bg-gray-950/70 shadow-lg shadow-black/10'
           : 'bg-transparent'
       )}
     >
-      <div className="w-full flex items-center justify-between px-8 left-0 right-0">
+      <div className="w-full flex items-center justify-between md:px-8 px-3 left-0 right-0">
         <div className="flex items-center space-x-2">
             <div 
             onClick={() => navigate('/')} 
