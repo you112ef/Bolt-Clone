@@ -133,8 +133,8 @@ It's designed for developers, designers, and entrepreneurs who want to quickly p
 
 If you find Bolt useful, please ⭐ star the repo and share it!
 
-[![Stargazers](https://img.shields.io/github/stars/PankajKumardev/bolt)](https://github.com/PankajKumardev/bolt/stargazers)  
-[![Forks](https://img.shields.io/github/forks/PankajKumardev/bolt)](https://github.com/PankajKumardev/bolt/network/members)
+[![Stargazers](https://img.shields.io/github/stars/PankajKumardev/bolt)](https://github.com/PankajKumardev/Bolt-Clone/stargazers)  
+[![Forks](https://img.shields.io/github/forks/PankajKumardev/bolt)](https://github.com/PankajKumardev/Bolt-Clone/network/members)
 
 ---
 
