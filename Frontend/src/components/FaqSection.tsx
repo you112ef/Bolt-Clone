@@ -38,10 +38,9 @@ export function FaqSection() {
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-12">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            initial={{ filter: 'blur(10px)' }}
+            animate={{ filter: 'blur(0px)' }}
+            transition={{ duration: 0.3 }}
           >
             <h2 className="text-3xl font-semibold text-white mb-4">FAQ's </h2>
             <p className="text-lg text-gray-400">
@@ -55,10 +54,9 @@ export function FaqSection() {
             <motion.div
               key={index}
               className="border border-gray-800 rounded-lg overflow-hidden"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
+              initial={{ filter: 'blur(10px)' }}
+              animate={{ filter: 'blur(0px)' }}
+              transition={{ duration: 0.3 }}
             >
               <Disclosure>
                 {({ open }) => (

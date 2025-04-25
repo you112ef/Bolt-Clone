@@ -22,25 +22,18 @@ export function Home() {
 
   return (
     <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-blue-950 min-h-screen relative">
-      {/* Ambient background elements */}
       <BackgroundElements />
 
-      {/* Navigation */}
       <Navbar scrollY={scrollY} />
 
-      {/* Hero Section */}
       <HeroSection prompt={prompt} setPrompt={setPrompt} />
 
-      {/* Features Section */}
       <FeaturesSection />
       
-      {/* How Bolt Works */}
       <HowitWork/>
 
-      {/* FAQ Section */}
       <FaqSection />
 
-      {/* Footer */}
       <Footer />
     </div>
   );

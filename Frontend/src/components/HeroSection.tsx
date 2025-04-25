@@ -23,8 +23,8 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
       <div className="max-w-5xl mx-auto text-center">
         <div className=""></div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.5 }}
           className="space-y-6 pt-10 sm:pt-0"
         >
@@ -45,8 +45,8 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
         <motion.form
           onSubmit={handleSubmit}
           className="mt-12 max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="backdrop-blur-md bg-gray-900/50 rounded-xl shadow-2xl border border-gray-800/80 overflow-hidden">

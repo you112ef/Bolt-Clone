@@ -1,5 +1,6 @@
 import { Cpu, Code, Zap, FlaskConical, Layers, Globe } from 'lucide-react';
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export function FeaturesSection() {
   const features = [
@@ -42,7 +43,13 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className=" relative z-10">
+    <motion.section
+      id="features"
+      className="relative z-10"
+      initial={{ filter: 'blur(10px)' }}
+      animate={{ filter: 'blur(0px)' }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="max-w-7xl mx-auto px-6">
         <h2 className="text-2xl sm:text-3xl text-center text-white font-medium">
           Why Choose Bolt for Creating Website?
@@ -60,9 +67,12 @@ export function FeaturesSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-8 text-center px-4 sm:px-0 max-w-7xl mx-auto">
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
-              className="width-fit text-left md:ml-7 border border-gray-800 rounded-lg p-4 "
+              className="width-fit text-left md:ml-7 border border-gray-800 rounded-lg p-4"
+              initial={{ filter: 'blur(10px)' }}
+              animate={{ filter: 'blur(0px)' }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <div className="flex items-center gap-2">
                 <div className="mb-2 w-fit rounded-lg p-1 text-center text-blue-400">
@@ -75,10 +85,10 @@ export function FeaturesSection() {
               <div className="font-regular max-w-sm text-sm text-gray-600 dark:text-gray-400">
                 {feature.description}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
