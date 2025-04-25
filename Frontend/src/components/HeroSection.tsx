@@ -30,9 +30,11 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
           <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight">
             Transform Ideas into Websites
             <br />
+            <div className='flex flex-col'>
             <span className="bg-clip-text text-blue-400 font-semibold bg-gradient-to-r from-blue-400 to-blue-600">
-              Powered by AI
+              Powered by <span className='text-blue-500'>A!</span>
             </span>
+            </div>
           </h1>
 
           <p className="text-base  font-normal text-gray-400 max-w-2xl mx-auto">
