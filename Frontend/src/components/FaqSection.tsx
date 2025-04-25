@@ -1,5 +1,4 @@
 import { ChevronDown } from 'lucide-react';
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Disclosure } from '@headlessui/react';
 import { cn } from '../utils/cn';

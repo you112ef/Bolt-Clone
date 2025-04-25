@@ -11,6 +11,7 @@ import { API_URL } from '../config.ts';
 import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { Loader } from '../components/Loader.tsx';
+
 import {
   Home,
   PanelRight,
@@ -30,7 +31,12 @@ type StepStatus = 'pending' | 'in-progress' | 'completed';
 
 export function Builder() {
   const navigate = useNavigate();
-  const { prompt, setLoading: setContextLoading, currentStep, setCurrentStep } = useAppContext();
+  const {
+    prompt,
+    setLoading: setContextLoading,
+    currentStep,
+    setCurrentStep,
+  } = useAppContext();
   const [userPrompt, setPrompt] = useState('');
   const [llmMessages, setLlmMessages] = useState<
     { role: 'user' | 'assistant'; content: string }[]
@@ -56,7 +62,7 @@ export function Builder() {
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
-    
+
     steps
       .filter(({ status }) => status === 'pending')
       .forEach((step) => {
@@ -137,14 +143,17 @@ export function Builder() {
 
   const handleFileUpdate = (updatedFile: FileItem) => {
     // Deep clone files to maintain immutability
-    const updateFilesRecursively = (filesArray: FileItem[], fileToUpdate: FileItem): FileItem[] => {
-      return filesArray.map(file => {
+    const updateFilesRecursively = (
+      filesArray: FileItem[],
+      fileToUpdate: FileItem
+    ): FileItem[] => {
+      return filesArray.map((file) => {
         if (file.path === fileToUpdate.path) {
           return fileToUpdate;
         } else if (file.type === 'folder' && file.children) {
           return {
             ...file,
-            children: updateFilesRecursively(file.children, fileToUpdate)
+            children: updateFilesRecursively(file.children, fileToUpdate),
           };
         }
         return file;
@@ -158,7 +167,9 @@ export function Builder() {
     if (webcontainer) {
       try {
         (webcontainer as WebContainer).fs.writeFile(
-          updatedFile.path.startsWith('/') ? updatedFile.path.substring(1) : updatedFile.path, 
+          updatedFile.path.startsWith('/')
+            ? updatedFile.path.substring(1)
+            : updatedFile.path,
           updatedFile.content || ''
         );
       } catch (err) {
@@ -235,7 +246,7 @@ export function Builder() {
           ...x,
           status: 'pending' as StepStatus,
         }));
-        
+
         setSteps(initialSteps);
         setTemplateSet(true);
 
@@ -252,12 +263,12 @@ export function Builder() {
           ...x,
           status: 'pending' as StepStatus,
         }));
-        
-        setSteps(prevSteps => [...prevSteps, ...newSteps]);
-        
-        setLlmMessages(prevMessages => [
+
+        setSteps((prevSteps) => [...prevSteps, ...newSteps]);
+
+        setLlmMessages((prevMessages) => [
           ...prevMessages,
-          { role: 'assistant', content: chatResponse.data.response }
+          { role: 'assistant', content: chatResponse.data.response },
         ]);
       }
 
@@ -267,7 +278,7 @@ export function Builder() {
       setLoading(false);
     }
   }
-  
+
   const handleRefreshWebContainer = () => {
     if (webcontainer) {
       init();
@@ -289,34 +300,34 @@ export function Builder() {
 
   const handleSendMessage = async () => {
     if (!userPrompt.trim()) return;
-  
+
     const newUserMessage = {
       role: 'user' as const,
       content: userPrompt,
     };
-  
+
     setLlmMessages([...llmMessages, newUserMessage]);
     setPrompt('');
     setLoading(true);
-  
+
     try {
       const response = await axios.post(`${API_URL}/chat`, {
         messages: [...llmMessages, newUserMessage],
       });
-  
+
       const assistantMessage = {
         role: 'assistant' as const,
         content: response.data.response,
       };
-  
+
       setLlmMessages([...llmMessages, newUserMessage, assistantMessage]);
-  
+
       // Check if the response contains steps in XML format
       const newSteps = parseXml(response.data.response).map((x: any) => ({
         ...x,
         status: 'pending' as StepStatus,
       }));
-      
+
       if (newSteps.length > 0) {
         setSteps((prevSteps) => [...prevSteps, ...newSteps]);
       }
@@ -337,13 +348,17 @@ export function Builder() {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <button
-            onClick={() => (window.location.href = '/')}
+            <button
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            <BoltIcon className="w-6 h-6 text-blue-400" />
+            >
+            <img 
+              src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTMgMkwzIDEzTDEyIDEzTDExIDIyTDIxIDExTDEyIDExTDEzIDJaIiBzdHJva2U9IiM2MEE1RkEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiAvPjwvc3ZnPg==" 
+              alt="Bolt Logo" 
+              className="w-6 h-6 relative z-10" 
+            />
             <h1 className="text-xl font-semibold text-white">Bolt</h1>
-          </button>
+            </button>
           <div className="h-6 mx-4 border-r border-gray-700"></div>
           <h2 className="text-gray-300 hidden sm:block">Website Builder</h2>
         </div>
@@ -380,7 +395,14 @@ export function Builder() {
         {/* Sidebar */}
         <motion.div
           className="bg-gray-900 border-r border-gray-800 overflow-hidden"
-          animate={{ width: isSidebarCollapsed ? '3rem' : ['100%', '90%', '75%', '50%', '33%', '25rem'].length > window.innerWidth / 100 ? '0' : '25rem' }}
+          animate={{
+            width: isSidebarCollapsed
+              ? '3rem'
+              : ['100%', '90%', '75%', '50%', '33%', '25rem'].length >
+                window.innerWidth / 100
+              ? '0'
+              : '25rem',
+          }}
           initial={false}
           transition={{ duration: 0.3 }}
         >
@@ -452,12 +474,12 @@ export function Builder() {
         </motion.div>
 
         {/* File explorer */}
-        <motion.div 
+        <motion.div
           className="border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col"
-          animate={{ 
+          animate={{
             width: isFileExplorerCollapsed ? '0' : '16rem',
-            opacity: isFileExplorerCollapsed ? 0 : 1
-          }} 
+            opacity: isFileExplorerCollapsed ? 0 : 1,
+          }}
           transition={{ duration: 0.3 }}
         >
           <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -480,18 +502,28 @@ export function Builder() {
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
             <div className="flex items-center md:hidden">
               <button
-                onClick={() => setFileExplorerCollapsed(!isFileExplorerCollapsed)}
+                onClick={() =>
+                  setFileExplorerCollapsed(!isFileExplorerCollapsed)
+                }
                 className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                title={isFileExplorerCollapsed ? "Show files" : "Hide files"}
+                title={isFileExplorerCollapsed ? 'Show files' : 'Hide files'}
               >
-                <PanelRight className={`w-4 h-4 text-gray-400 ${isFileExplorerCollapsed ? 'rotate-180' : ''}`} />
+                <PanelRight
+                  className={`w-4 h-4 text-gray-400 ${
+                    isFileExplorerCollapsed ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
               <button
                 onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
                 className="ml-2 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                title={isSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+                title={isSidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
               >
-                <PanelRight className={`w-4 h-4 text-gray-400 ${!isSidebarCollapsed ? 'rotate-180' : ''}`} />
+                <PanelRight
+                  className={`w-4 h-4 text-gray-400 ${
+                    !isSidebarCollapsed ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
             </div>
           </div>
@@ -499,8 +531,8 @@ export function Builder() {
           <div className="flex-1 overflow-hidden p-4 bg-gray-950">
             <div className="h-full rounded-lg overflow-hidden border border-gray-800 bg-gray-900 shadow-xl">
               {activeTab === 'code' ? (
-                <CodeEditor 
-                  file={selectedFile} 
+                <CodeEditor
+                  file={selectedFile}
                   onUpdateFile={handleFileUpdate}
                 />
               ) : webcontainer ? (

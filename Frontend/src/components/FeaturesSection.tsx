@@ -1,5 +1,4 @@
 import { Cpu, Code, Zap, FlaskConical, Layers, Globe } from 'lucide-react';
-import React from 'react';
 import { motion } from 'framer-motion';
 
 export function FeaturesSection() {
