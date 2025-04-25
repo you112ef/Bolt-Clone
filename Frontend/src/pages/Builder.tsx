@@ -280,9 +280,7 @@ export function Builder() {
   }
 
   const handleRefreshWebContainer = () => {
-    if (webcontainer) {
-      init();
-    }
+    window.location.href = '/';
   };
 
   const handleDownloadProject = async () => {
