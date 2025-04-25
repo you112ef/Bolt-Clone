@@ -37,10 +37,10 @@ export function Navbar({ scrollY }: NavbarProps) {
             Features
           </a>
           <a
-            href="#why-choose"
+            href="#howitworks"
             className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
           >
-            Why Choose
+            How it works
           </a>
           <a
             href="#faq"
