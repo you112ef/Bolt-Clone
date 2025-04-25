@@ -147,7 +147,7 @@ Use it freely, tweak it wildly, and ship cool stuff!
 
 ## 📖 Changelog
 
-See [`CHANGELOG.md`](https://github.com/PankajKumardev/bolt/blob/main/CHANGELOG.md) for updates and patch history.
+See [`CHANGELOG.md`](https://github.com/PankajKumardev/bolt-Clone/blob/main/CHANGELOG.md) for updates and patch history.
 
 ---
 
