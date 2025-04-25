@@ -6,10 +6,12 @@ import { AppProvider } from './context/AppContext';
 import './index.css';
 
 function App() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   return (
     <AppProvider>
       <BrowserRouter>
-        <Analytics />
+        {isProduction && <Analytics />}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/builder" element={<Builder />} />
