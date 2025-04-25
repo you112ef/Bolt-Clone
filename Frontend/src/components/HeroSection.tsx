@@ -19,7 +19,7 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
   };
 
   return (
-    <header className="relative z-10 px-6 py-24 md:pt-48 pt-24">
+    <header className="relative z-10 px-6 py-24 md:pt-48 pt-24 md:mb-20">
       <div className="max-w-5xl mx-auto text-center">
         <div className=""></div>
         <motion.div

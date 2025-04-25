@@ -25,11 +25,11 @@ export function Footer() {
               Features
             </a>
             <a
-              href="#why-choose"
+              href="#howitworks"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              Why Choose
-            </a>
+              How it works
+              </a>
             <a
               href="#faq"
               className="text-gray-400 hover:text-white transition-colors"

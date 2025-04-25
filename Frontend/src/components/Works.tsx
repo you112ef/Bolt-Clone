@@ -24,7 +24,8 @@ function HowItWorksStep({
 
 export default function HowitWork() {
   return (
-    <div className="text-center mt-12">
+    <section id="howitworks"  className="text-center pt-32">
+    <div>
       <h2 className="text-3xl text-gray-100">
         How Bolt Works!
       </h2>
@@ -48,5 +49,6 @@ export default function HowitWork() {
         </div>
       </div>
     </div>
+  </section>  
   );
 }
