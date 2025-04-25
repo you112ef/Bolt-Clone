@@ -24,7 +24,7 @@ function HowItWorksStep({
 
 export default function HowitWork() {
   return (
-    <div className="text-center mt-20">
+    <div className="text-center mt-12">
       <h2 className="text-3xl text-gray-100">
         How Bolt Works!
       </h2>

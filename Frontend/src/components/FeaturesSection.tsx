@@ -17,9 +17,9 @@ export function FeaturesSection() {
     },
     {
       icon: <Zap className="w-6 h-6" />,
-      title: 'Instant Preview',
+      title: 'Reprompt and Edit',
       description:
-        'See changes in real-time with our built-in preview that updates as you modify your application.',
+        'Easily reprompt or edit your website to get the perfect design and functionality you desire.',
     },
     {
       icon: <FlaskConical className="w-6 h-6" />,
@@ -35,9 +35,9 @@ export function FeaturesSection() {
     },
     {
       icon: <Globe className="w-6 h-6" />,
-      title: 'One-Click Deployment',
+      title: 'Download and Deploy',
       description:
-        'Deploy your application to the web with a single click and share it with the world.',
+        'Easily download your generated website as a zip file and host it on any platform of your choice.',
     },
   ];
 
@@ -47,13 +47,19 @@ export function FeaturesSection() {
         <h2 className="text-2xl sm:text-3xl text-center text-white font-medium">
           Why Choose Bolt for Creating Website?
         </h2>
-        <p className="text-base text-center mt-4 max-w-lg mx-auto text-gray-400">
+        <p className="text-lg text-center mt-4 max-w-lg mx-auto text-gray-400">
           Bolt offers a powerful suite of features to make web development
           and deployment effortless.
         </p>
         <div className="text-center text-3xl text-white font-medium mt-20">
-          Powerful Features!
+          <h1>Powerful Features!</h1>
         </div>
+        <div className='text-center text-lg text-gray-400  mt-4'>
+          <h3>
+            Bolt is a powerful tool that combines the best of AI and web
+          </h3>
+        </div>
+       
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-8 text-center px-4 sm:px-0 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <div key={index} className="width-fit text-left md:ml-7 border border-gray-800 rounded-lg p-4 ">
@@ -65,7 +71,7 @@ export function FeaturesSection() {
                 {feature.title}
               </div>
               </div>
-              <div className="font-regular max-w-sm text-xs text-gray-600 dark:text-gray-400">
+              <div className="font-regular max-w-sm text-sm text-gray-600 dark:text-gray-400">
               {feature.description}
               </div>
             </div>
