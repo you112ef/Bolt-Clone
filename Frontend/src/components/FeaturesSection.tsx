@@ -53,22 +53,22 @@ export function FeaturesSection() {
         <h2 className="text-2xl sm:text-3xl text-center text-white font-medium">
           Why Choose Bolt for Creating Website?
         </h2>
-        <p className="text-lg text-center mt-4 max-w-lg mx-auto text-gray-400">
+        <p className="text-base sm:text-lg text-center mt-4 max-w-lg mx-auto text-gray-400">
           Bolt offers a powerful suite of features to make web development and
           deployment effortless.
         </p>
-        <div className="text-center text-3xl text-white font-medium mt-20">
-          <h1>Powerful Features!</h1>
+        <div className="text-center font-medium mt-20">
+          <h3 className="text-2xl sm:text-3xl text-white">Powerful Features!</h3>
         </div>
-        <div className="text-center text-lg text-gray-400  mt-4">
-          <h3>Bolt is a powerful tool that combines the best of AI and web</h3>
+        <div className="text-center mt-4">
+          <h4 className="text-base sm:text-lg text-gray-400">Bolt is a powerful tool that combines the best of AI and web</h4>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-8 text-center px-4 sm:px-0 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-8 text-center px-4 sm:px-0 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className="width-fit text-left md:ml-7 border border-gray-800 rounded-lg p-4"
+              className="w-fit text-left border border-gray-800 rounded-lg p-4"
               initial={{ filter: 'blur(10px)' }}
               animate={{ filter: 'blur(0px)' }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -77,11 +77,11 @@ export function FeaturesSection() {
                 <div className="mb-2 w-fit rounded-lg p-1 text-center text-blue-400">
                   {feature.icon}
                 </div>
-                <div className="text-md mb-1 font-normal text-gray-900 dark:text-gray-100">
+                <div className="text-lg mb-1 font-normal text-gray-900 dark:text-gray-100">
                   {feature.title}
                 </div>
               </div>
-              <div className="font-regular max-w-sm text-sm text-gray-600 dark:text-gray-400">
+              <div className="font-normal max-w-sm text-sm text-gray-600 dark:text-gray-400">
                 {feature.description}
               </div>
             </motion.div>

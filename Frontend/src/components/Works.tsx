@@ -19,10 +19,10 @@ function HowItWorksStep({
       <div className="w-12 h-12 rounded-full bg-[#E7E9EC] text-slate-900 flex items-center justify-center text-xl font-bold mb-4">
         {number}
       </div>
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
         {title}
       </h3>
-      <p className="text-gray-600 dark:text-gray-400 text-normal px-12">
+      <p className="text-gray-600 dark:text-gray-400 text-base px-4 sm:px-2">
         {description}
       </p>
     </motion.div>
@@ -37,11 +37,11 @@ export default function HowitWork() {
         animate={{ filter: 'blur(0px)' }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-3xl text-gray-100">
+        <h2 className="text-2xl sm:text-3xl text-gray-100">
           How Bolt Works!
         </h2>
-        <div className="mt-12 sm:px-20">
-          <div className="grid md:grid-cols-3 gap-4">
+        <div className="mt-12 px-4 sm:px-8 md:px-12 lg:px-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <HowItWorksStep
               number={1}
               title="Give a Prompt"

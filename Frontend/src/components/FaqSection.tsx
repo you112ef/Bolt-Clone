@@ -33,7 +33,7 @@ export function FaqSection() {
   ];
 
   return (
-    <section id="faq" className="py-20 md:py-30 relative z-10">
+    <section id="faq" className="py-20 md:py-32 relative z-10">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-12">
           <motion.div
@@ -41,8 +41,8 @@ export function FaqSection() {
             animate={{ filter: 'blur(0px)' }}
             transition={{ duration: 0.3 }}
           >
-            <h2 className="text-3xl font-semibold text-white mb-4">FAQ's </h2>
-            <p className="text-lg text-gray-400">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">FAQ's </h2>
+            <p className="text-base sm:text-lg text-gray-400">
               Find answers to common questions about Bolt.
             </p>
           </motion.div>
