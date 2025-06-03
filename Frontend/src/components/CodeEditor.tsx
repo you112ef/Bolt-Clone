@@ -76,7 +76,7 @@ export function CodeEditor({ file, onUpdateFile }: CodeEditorProps) {
   return (
     <div className="h-full relative">
       <div className="absolute top-0 left-0 right-0 bg-gray-900 border-b border-gray-800 px-4 py-2 flex items-center">
-        <span className="text-sm font-mono text-gray-400">{file.path}</span>
+        <span className="text-sm font-mono text-gray-400 truncate">{file.path}</span>
       </div>
       <div className="pt-10 h-full">
         <Editor
