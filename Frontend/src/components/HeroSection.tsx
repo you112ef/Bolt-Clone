@@ -18,7 +18,7 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
   };
 
   return (
-    <header className="relative z-10 px-6 py-24 md:pt-48 pt-24 md:mb-20">
+    <header className="relative z-10 px-6 py-24 md:pt-48 md:mb-20">
       <div className="max-w-5xl mx-auto text-center">
         <div className=""></div>
         <motion.div
@@ -27,7 +27,7 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
           transition={{ duration: 0.5 }}
           className="space-y-6 pt-10 sm:pt-0"
         >
-          <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white leading-tight">
             Transform Ideas into Websites
             <br />
             <div className='flex flex-col'>
@@ -37,7 +37,7 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
             </div>
           </h1>
 
-          <p className="text-base  font-normal text-gray-400 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base font-normal text-gray-400 max-w-2xl mx-auto">
             Simply describe, create, and customize your website in seconds with
             <span className="text-blue-400 font-semibold"> Bolt</span>
           </p>
@@ -55,7 +55,7 @@ export function HeroSection({ prompt, setPrompt }: HeroSectionProps) {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe the website you want to build..."
-              className="w-full h-32 p-5 bg-transparent text-gray-100 rounded-lg focus:outline-none resize-none placeholder-gray-500"
+              className="w-full h-24 sm:h-32 p-5 bg-transparent text-gray-100 rounded-lg focus:outline-none resize-none placeholder-gray-500"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

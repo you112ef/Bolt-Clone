@@ -358,7 +358,7 @@ export function Builder() {
             <h1 className="text-xl font-semibold text-white">Bolt</h1>
             </button>
           <div className="h-6 mx-4 border-r border-gray-700"></div>
-          <h2 className="text-gray-300 hidden sm:block">Website Builder</h2>
+          <h2 className="text-gray-300 block">Website Builder</h2>
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -370,12 +370,12 @@ export function Builder() {
             {isDownloading ? (
               <>
                 <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                <span className="hidden sm:inline">Downloading...</span>
+                <span className="inline">Downloading...</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download ZIP</span>
+                <span className="inline">Download ZIP</span>
               </>
             )}
           </button>
@@ -384,7 +384,7 @@ export function Builder() {
             className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
           >
             <Home className="w-5 h-5" />
-            <span className="hidden sm:inline">Home</span>
+            <span className="inline">Home</span>
           </a>
         </div>
       </header>
@@ -392,14 +392,9 @@ export function Builder() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <motion.div
-          className="bg-gray-900 border-r border-gray-800 overflow-hidden"
+          className="bg-gray-900 border-r border-gray-800 overflow-hidden sm:w-64 md:w-72 lg:w-80 xl:w-96"
           animate={{
-            width: isSidebarCollapsed
-              ? '3rem'
-              : ['100%', '90%', '75%', '50%', '33%', '25rem'].length >
-                window.innerWidth / 100
-              ? '0'
-              : '25rem',
+            width: isSidebarCollapsed ? '3rem' : '100%',
           }}
           initial={false}
           transition={{ duration: 0.3 }}
@@ -473,9 +468,9 @@ export function Builder() {
 
         {/* File explorer */}
         <motion.div
-          className="border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col"
+          className="border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col sm:w-48 md:w-56 lg:w-64"
           animate={{
-            width: isFileExplorerCollapsed ? '0' : '16rem',
+            width: isFileExplorerCollapsed ? '0px' : '100%',
             opacity: isFileExplorerCollapsed ? 0 : 1,
           }}
           transition={{ duration: 0.3 }}
