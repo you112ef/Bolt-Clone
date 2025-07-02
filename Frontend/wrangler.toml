@@ -84,9 +84,9 @@ binding = "AI"
 binding = "ANALYTICS"
 
 # Custom domains (update with your domain)
-# [pages.routes]
-# patterns = ["ai-agent.yourdomain.com/*"]
-# zone_name = "yourdomain.com"
+[pages.routes]
+patterns = ["ai-agent.yourdomain.com/*"]
+zone_name = "yourdomain.com"
 
 # Preview configuration
 [env.preview]
