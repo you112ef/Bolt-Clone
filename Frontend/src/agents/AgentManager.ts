@@ -105,7 +105,8 @@ export class AgentManager {
       refactor: ['refactor', 'improve', 'optimize', 'clean', 'restructure', 'better'],
       test: ['test', 'unit test', 'testing', 'spec', 'coverage', 'assert'],
       scaffold: ['create', 'generate', 'scaffold', 'new', 'make', 'build'],
-      command: ['run', 'execute', 'install', 'command', 'terminal', 'npm', 'yarn']
+      command: ['run', 'execute', 'install', 'command', 'terminal', 'npm', 'yarn'],
+      search: ['search', 'find', 'look for', 'locate', 'where is', 'show me']
     };
 
     // Score each agent based on keyword matches
