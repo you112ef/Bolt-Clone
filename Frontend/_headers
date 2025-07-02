@@ -1,0 +1,112 @@
+# Cloudflare Pages Headers Configuration for AI Agent Platform
+
+# Global security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  
+# Content Security Policy for AI agent platform
+/
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://api.mistral.ai; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://api.mistral.ai wss: ws:; font-src 'self' data:; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; worker-src 'self' blob:;
+
+# Static assets caching
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  
+# AI model files caching  
+/models/*
+  Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  
+# WebAssembly files for transformers
+*.wasm
+  Content-Type: application/wasm
+  Cache-Control: public, max-age=86400
+  Cross-Origin-Embedder-Policy: require-corp
+  
+# Service worker
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  
+# API endpoints CORS
+/api/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH
+  Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin
+  Access-Control-Max-Age: 86400
+  Access-Control-Allow-Credentials: false
+  
+# WebSocket connections
+/ws/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization, Upgrade, Connection, Sec-WebSocket-Key, Sec-WebSocket-Version, Sec-WebSocket-Protocol
+  
+# Monaco Editor workers
+/monaco-editor/*
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Access-Control-Allow-Origin: *
+  
+# Transformers.js models and tokenizers
+/transformers/*
+  Access-Control-Allow-Origin: *
+  Cross-Origin-Embedder-Policy: require-corp
+  Cache-Control: public, max-age=604800
+  
+# Terminal and execution service
+/terminal/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  
+# Image processing
+/upload/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type
+  Content-Type: multipart/form-data
+  
+# Performance optimization
+*.js
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Encoding: gzip
+  
+*.css
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Encoding: gzip
+  
+*.json
+  Cache-Control: public, max-age=86400
+  Content-Type: application/json; charset=utf-8
+  
+# Fonts
+*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: font/woff2
+  Cross-Origin-Resource-Policy: cross-origin
+  
+*.woff
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: font/woff
+  Cross-Origin-Resource-Policy: cross-origin
+  
+# Manifest and icons
+/manifest.json
+  Cache-Control: public, max-age=86400
+  Content-Type: application/manifest+json
+  
+*.ico
+  Cache-Control: public, max-age=31536000, immutable
+  
+# Security for sensitive files
+/functions/*
+  X-Robots-Tag: noindex, nofollow
+  
+/.env*
+  X-Robots-Tag: noindex, nofollow

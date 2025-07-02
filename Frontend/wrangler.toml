@@ -1,0 +1,96 @@
+# Cloudflare Pages Configuration for AI Agent Platform
+name = "ai-agent-platform"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = "src"
+
+# Environment variables for development
+[env.development]
+[env.development.vars]
+NODE_ENV = "development"
+CF_PAGES = "1"
+VITE_APP_ENVIRONMENT = "development"
+
+# Environment variables for production
+[env.production]
+[env.production.vars]
+NODE_ENV = "production" 
+CF_PAGES = "1"
+VITE_APP_ENVIRONMENT = "production"
+
+# Pages configuration
+[pages]
+build_output_dir = "dist"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Functions configuration for AI API routes
+[[pages.functions]]
+pattern = "/api/ai/*"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# WebSocket support for terminal
+[[pages.functions]]
+pattern = "/ws/*"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Image processing endpoints
+[[pages.functions]]
+pattern = "/api/upload/*"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Search and indexing
+[[pages.functions]]
+pattern = "/api/search/*"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# File operations
+[[pages.functions]]
+pattern = "/api/files/*"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace for caching (optional)
+kv_namespaces = [
+  { binding = "CACHE", id = "your-kv-namespace-id", preview_id = "your-preview-kv-namespace-id" }
+]
+
+# D1 database for user data (optional)
+d1_databases = [
+  { binding = "DB", database_name = "ai-agent-db", database_id = "your-d1-database-id" }
+]
+
+# R2 bucket for file storage (optional)
+r2_buckets = [
+  { binding = "STORAGE", bucket_name = "ai-agent-storage" }
+]
+
+# AI model bindings (Cloudflare AI)
+[ai]
+binding = "AI"
+
+# Analytics
+[analytics_engine_datasets]
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+
+# Custom domains (update with your domain)
+# [pages.routes]
+# patterns = ["ai-agent.yourdomain.com/*"]
+# zone_name = "yourdomain.com"
+
+# Preview configuration
+[env.preview]
+[env.preview.vars]
+NODE_ENV = "development"
+CF_PAGES = "1"
+VITE_APP_ENVIRONMENT = "preview"
