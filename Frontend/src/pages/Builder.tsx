@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StepsList } from '../components/StepsList.tsx';
 import { FileExplorer } from '../components/FileExplorer';
-import { TabView } from '../components/TabView.tsx';
-import { CodeEditor } from '../components/CodeEditor.tsx';
+import { SmartCodeEditor } from '../components/SmartCodeEditor.tsx';
+import { AIAssistantPanel } from '../components/AIAssistantPanel.tsx';
+import { SmartTerminal } from '../components/SmartTerminal.tsx';
 import { PreviewFrame } from '../components/PreviewFrame';
 import { Step, FileItem, StepType } from '../types/index.ts';
+import { AgentManager } from '../agents/AgentManager';
 import axios from 'axios';
 import { API_URL } from '../config.ts';
 import { parseXml } from '../steps';
@@ -20,6 +22,10 @@ import {
   AlertTriangle,
   BoltIcon,
   Download,
+  Terminal,
+  Bot,
+  Code,
+  Eye,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WebContainer } from '@webcontainer/api';
@@ -44,13 +50,20 @@ export function Builder() {
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  
+  // AI Agents Integration
+  const [agentManager] = useState(() => new AgentManager());
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showTerminal, setShowTerminal] = useState(false);
+  
   const {
     webcontainer,
     error: webContainerError,
     loading: webContainerLoading,
   } = useWebContainer();
 
-  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
+  // Enhanced tab system for code, preview, terminal
+  const [activeTab, setActiveTab] = useState<'code' | 'preview' | 'terminal'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isFileExplorerCollapsed, setFileExplorerCollapsed] = useState(false);
@@ -68,8 +81,8 @@ export function Builder() {
       .forEach((step) => {
         updateHappened = true;
         if (step?.type === StepType.CreateFile) {
-          let parsedPath = step.path?.split('/') ?? []; // ["src", "components", "App.tsx"]
-          let currentFileStructure = [...originalFiles]; // {}
+          let parsedPath = step.path?.split('/') ?? [];
+          let currentFileStructure = [...originalFiles];
           let finalAnswerRef = currentFileStructure;
 
           let currentFolder = '';
@@ -79,7 +92,6 @@ export function Builder() {
             parsedPath = parsedPath.slice(1);
 
             if (!parsedPath.length) {
-              // final file
               let file = currentFileStructure.find(
                 (x) => x.path === currentFolder
               );
@@ -94,12 +106,10 @@ export function Builder() {
                 file.content = step.code;
               }
             } else {
-              /// in a folder
               let folder = currentFileStructure.find(
                 (x) => x.path === currentFolder
               );
               if (!folder) {
-                // create the folder
                 currentFileStructure.push({
                   name: currentFolderName,
                   type: 'folder',
@@ -141,8 +151,8 @@ export function Builder() {
     }
   }, [files, webcontainer]);
 
-  const handleFileUpdate = (updatedFile: FileItem) => {
-    // Deep clone files to maintain immutability
+  // Enhanced file update with AI assistance
+  const handleFileUpdate = async (updatedFile: FileItem) => {
     const updateFilesRecursively = (
       filesArray: FileItem[],
       fileToUpdate: FileItem
@@ -163,7 +173,7 @@ export function Builder() {
     const updatedFiles = updateFilesRecursively(files, updatedFile);
     setFiles(updatedFiles);
 
-    // Update file in WebContainer if it's initialized
+    // Update file in WebContainer
     if (webcontainer) {
       try {
         (webcontainer as WebContainer).fs.writeFile(
@@ -176,6 +186,18 @@ export function Builder() {
         console.error('Error writing file to WebContainer:', err);
       }
     }
+
+    // AI-powered analysis of changes
+    if (agentManager && updatedFile.content) {
+      try {
+        const analysis = await agentManager.analyzeCode(updatedFile.content, updatedFile.name);
+        if (analysis.issues.length > 0) {
+          console.log('AI detected issues:', analysis.issues);
+        }
+      } catch (err) {
+        console.error('AI analysis failed:', err);
+      }
+    }
   };
 
   // Create mount structure for WebContainer
@@ -184,7 +206,6 @@ export function Builder() {
 
     const processFile = (file: FileItem, isRootFolder: boolean) => {
       if (file.type === 'folder') {
-        // For folders, create a directory entry
         mountStructure[file.name] = {
           directory: file.children
             ? Object.fromEntries(
@@ -203,7 +224,6 @@ export function Builder() {
             },
           };
         } else {
-          // For files, create a file entry with contents
           return {
             file: {
               contents: file.content || '',
@@ -215,7 +235,6 @@ export function Builder() {
       return mountStructure[file.name];
     };
 
-    // Process each top-level file/folder
     files.forEach((file) => processFile(file, true));
 
     return mountStructure;
@@ -225,9 +244,10 @@ export function Builder() {
     try {
       setLoading(true);
 
-      // Skip if template is already set
       if (!templateSet) {
-        // Get template from backend
+        // Initialize AI Agents
+        await agentManager.initialize();
+        
         const response = await axios.post(`${API_URL}/template`, {
           prompt,
         });
@@ -241,7 +261,6 @@ export function Builder() {
           },
         ]);
 
-        // Set the initial steps from template
         const initialSteps = parseXml(uiPrompts[0] || '').map((x: any) => ({
           ...x,
           status: 'pending' as StepStatus,
@@ -250,7 +269,6 @@ export function Builder() {
         setSteps(initialSteps);
         setTemplateSet(true);
 
-        // Send the chat request for full project generation
         const chatResponse = await axios.post(`${API_URL}/chat`, {
           messages: [...prompts, prompt].map((content: string) => ({
             role: 'user',
@@ -258,7 +276,6 @@ export function Builder() {
           })),
         });
 
-        // Process the steps from the chat response
         const newSteps = parseXml(chatResponse.data.response).map((x: any) => ({
           ...x,
           status: 'pending' as StepStatus,
@@ -296,6 +313,7 @@ export function Builder() {
     }
   };
 
+  // Enhanced send message with AI routing
   const handleSendMessage = async () => {
     if (!userPrompt.trim()) return;
 
@@ -309,25 +327,42 @@ export function Builder() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/chat`, {
-        messages: [...llmMessages, newUserMessage],
+      // Use AI Agent for intelligent routing
+      const agentResponse = await agentManager.routeQuery(userPrompt, {
+        files,
+        selectedFile,
+        currentStep,
       });
 
-      const assistantMessage = {
-        role: 'assistant' as const,
-        content: response.data.response,
-      };
+      if (agentResponse.requiresCodeGeneration) {
+        // Traditional bolt.diy flow for code generation
+        const response = await axios.post(`${API_URL}/chat`, {
+          messages: [...llmMessages, newUserMessage],
+        });
 
-      setLlmMessages([...llmMessages, newUserMessage, assistantMessage]);
+        const assistantMessage = {
+          role: 'assistant' as const,
+          content: response.data.response,
+        };
 
-      // Check if the response contains steps in XML format
-      const newSteps = parseXml(response.data.response).map((x: any) => ({
-        ...x,
-        status: 'pending' as StepStatus,
-      }));
+        setLlmMessages([...llmMessages, newUserMessage, assistantMessage]);
 
-      if (newSteps.length > 0) {
-        setSteps((prevSteps) => [...prevSteps, ...newSteps]);
+        const newSteps = parseXml(response.data.response).map((x: any) => ({
+          ...x,
+          status: 'pending' as StepStatus,
+        }));
+
+        if (newSteps.length > 0) {
+          setSteps((prevSteps) => [...prevSteps, ...newSteps]);
+        }
+      } else {
+        // Direct AI agent response
+        const assistantMessage = {
+          role: 'assistant' as const,
+          content: agentResponse.response,
+        };
+
+        setLlmMessages([...llmMessages, newUserMessage, assistantMessage]);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -344,6 +379,7 @@ export function Builder() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
+      {/* Enhanced Header with AI Tools */}
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
             <button
@@ -358,9 +394,40 @@ export function Builder() {
             <h1 className="text-xl font-semibold text-white">Bolt</h1>
             </button>
           <div className="h-6 mx-4 border-r border-gray-700"></div>
-          <h2 className="text-gray-300 hidden sm:block">Website Builder</h2>
+          <h2 className="text-gray-300 hidden sm:block">AI-Powered App Builder</h2>
         </div>
         <div className="flex items-center gap-4">
+          {/* AI Assistant Toggle */}
+          <button
+            onClick={() => setShowAIAssistant(!showAIAssistant)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+              showAIAssistant 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-800 text-gray-300 hover:text-white'
+            }`}
+            title="Toggle AI Assistant"
+          >
+            <Bot className="w-4 h-4" />
+            <span className="hidden sm:inline">AI Assistant</span>
+          </button>
+
+          {/* Terminal Toggle */}
+          <button
+            onClick={() => {
+              setShowTerminal(!showTerminal);
+              if (!showTerminal) setActiveTab('terminal');
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+              showTerminal 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-800 text-gray-300 hover:text-white'
+            }`}
+            title="Toggle Smart Terminal"
+          >
+            <Terminal className="w-4 h-4" />
+            <span className="hidden sm:inline">Terminal</span>
+          </button>
+
           <button
             onClick={handleDownloadProject}
             disabled={isDownloading || files.length === 0}
@@ -390,7 +457,7 @@ export function Builder() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar - Keep existing */}
         <motion.div
           className="bg-gray-900 border-r border-gray-800 overflow-hidden"
           animate={{
@@ -405,7 +472,6 @@ export function Builder() {
           transition={{ duration: 0.3 }}
         >
           <div className="flex h-full">
-            {/* Collapse button */}
             <div className="p-2 bg-gray-900 border-r border-gray-800 flex flex-col items-center">
               <button
                 onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
@@ -471,7 +537,7 @@ export function Builder() {
           </div>
         </motion.div>
 
-        {/* File explorer */}
+        {/* File explorer - Keep existing */}
         <motion.div
           className="border-r border-gray-800 bg-gray-900 overflow-hidden flex flex-col"
           animate={{
@@ -494,89 +560,110 @@ export function Builder() {
           </div>
         </motion.div>
 
-        {/* Main content */}
+        {/* Main content with enhanced tabs */}
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Enhanced Tab Header */}
           <div className="p-4 border-b border-gray-800 bg-gray-900 flex items-center justify-between">
-            <TabView activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="flex items-center md:hidden">
+            <div className="flex items-center space-x-1">
               <button
-                onClick={() =>
-                  setFileExplorerCollapsed(!isFileExplorerCollapsed)
-                }
-                className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                title={isFileExplorerCollapsed ? 'Show files' : 'Hide files'}
+                onClick={() => setActiveTab('code')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                  activeTab === 'code'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
               >
-                <PanelRight
-                  className={`w-4 h-4 text-gray-400 ${
-                    isFileExplorerCollapsed ? 'rotate-180' : ''
-                  }`}
-                />
+                <Code className="w-4 h-4" />
+                Code
               </button>
               <button
-                onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
-                className="ml-2 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                title={isSidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                  activeTab === 'preview'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
               >
-                <PanelRight
-                  className={`w-4 h-4 text-gray-400 ${
-                    !isSidebarCollapsed ? 'rotate-180' : ''
-                  }`}
-                />
+                <Eye className="w-4 h-4" />
+                Preview
               </button>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-hidden p-4 bg-gray-950">
-            <div className="h-full rounded-lg overflow-hidden border border-gray-800 bg-gray-900 shadow-xl">
-              {activeTab === 'code' ? (
-                <CodeEditor
-                  file={selectedFile}
-                  onUpdateFile={handleFileUpdate}
-                />
-              ) : webcontainer ? (
-                <PreviewFrame
-                  webContainer={webcontainer as WebContainer}
-                  files={files}
-                />
-              ) : webContainerLoading ? (
-                <div className="h-full flex items-center justify-center text-gray-400 p-8 text-center">
-                  <div>
-                    <Loader size="lg" className="mb-4" />
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">
-                      Initializing WebContainer
-                    </h3>
-                    <p className="text-gray-500 max-w-md">
-                      Setting up the preview environment. This might take a
-                      moment...
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400 p-8 text-center">
-                  <div>
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
-                      <AlertTriangle className="w-8 h-8 text-amber-500" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-300 mb-2">
-                      WebContainer Error
-                    </h3>
-                    <p className="text-gray-400 max-w-md mb-6">
-                      {webContainerError?.message ||
-                        'The WebContainer environment could not be initialized. This may be due to missing browser security headers or lack of browser support.'}
-                    </p>
-                    <button
-                      onClick={handleRefreshWebContainer}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Retry
-                    </button>
-                  </div>
-                </div>
+              {showTerminal && (
+                <button
+                  onClick={() => setActiveTab('terminal')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
+                    activeTab === 'terminal'
+                      ? 'bg-green-600 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <Terminal className="w-4 h-4" />
+                  Terminal
+                </button>
               )}
             </div>
+
+            {/* Error display */}
+            {webContainerError && (
+              <div className="flex items-center gap-2 text-red-400">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-sm">
+                  WebContainer Error - Please refresh
+                </span>
+                <button
+                  onClick={handleRefreshWebContainer}
+                  className="text-red-400 hover:text-red-300"
+                  title="Refresh WebContainer"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'code' && (
+              <SmartCodeEditor
+                file={selectedFile}
+                onUpdateFile={handleFileUpdate}
+                agentManager={agentManager}
+                files={files}
+              />
+            )}
+            {activeTab === 'preview' && (
+              <PreviewFrame 
+                webContainer={webcontainer as WebContainer}
+                files={files}
+              />
+            )}
+            {activeTab === 'terminal' && showTerminal && (
+              <SmartTerminal 
+                webcontainer={webcontainer}
+                files={files}
+                agentManager={agentManager}
+              />
+            )}
           </div>
         </div>
+
+        {/* AI Assistant Panel */}
+        {showAIAssistant && (
+          <motion.div
+            className="w-80 border-l border-gray-800 bg-gray-900"
+            initial={{ x: 320 }}
+            animate={{ x: 0 }}
+            exit={{ x: 320 }}
+            transition={{ duration: 0.3 }}
+          >
+            <AIAssistantPanel
+              agentManager={agentManager}
+              selectedFile={selectedFile}
+              files={files}
+              onFileUpdate={handleFileUpdate}
+              onClose={() => setShowAIAssistant(false)}
+            />
+          </motion.div>
+        )}
       </div>
     </div>
   );
