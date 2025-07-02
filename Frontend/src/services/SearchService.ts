@@ -9,12 +9,51 @@ export class SearchService {
   private chunks: EmbeddingChunk[] = [];
   private fuseIndex: Fuse<EmbeddingChunk> | null = null;
   private isInitialized = false;
+  
+  // Cloudflare Pages optimization
+  private readonly CACHE_KEY = 'ai-agent-search-cache-v3';
+  private readonly INDEX_VERSION = 3;
+  private dbPromise: Promise<IDBDatabase> | null = null;
 
   static getInstance(): SearchService {
     if (!SearchService.instance) {
       SearchService.instance = new SearchService();
     }
     return SearchService.instance;
+  }
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.initializeIndexedDB();
+    }
+  }
+
+  // Initialize IndexedDB for offline caching
+  private async initializeIndexedDB(): Promise<IDBDatabase> {
+    if (this.dbPromise) return this.dbPromise;
+    
+    this.dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open('ai-agent-search', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        
+        if (!db.objectStoreNames.contains('embeddings')) {
+          const store = db.createObjectStore('embeddings', { keyPath: 'id' });
+          store.createIndex('path', 'path', { unique: false });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+        
+        if (!db.objectStoreNames.contains('search-cache')) {
+          db.createObjectStore('search-cache', { keyPath: 'query' });
+        }
+      };
+    });
+    
+    return this.dbPromise;
   }
 
   async initialize(): Promise<void> {
